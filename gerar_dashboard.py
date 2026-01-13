@@ -11,7 +11,7 @@ arquivo_portfolio = "portfolio.xlsx"
 short_window = 20
 long_window = 50
 pasta_plots = "plots"
-arquivo_dashboard = "dashboard.html"
+arquivo_dashboard = "index.html"
 
 os.makedirs(pasta_plots, exist_ok=True)
 
