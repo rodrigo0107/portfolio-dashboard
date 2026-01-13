@@ -70,7 +70,7 @@ for _, row in portfolio.iterrows():
 
     df = yf.download(
         ticker,
-        start="2010-01-01",
+        start="2023-01-01",
         auto_adjust=True,
         progress=False
     )
@@ -89,12 +89,11 @@ for _, row in portfolio.iterrows():
 
     df = df[['Close']].dropna()
 
-    # Verificação mínima antes das médias
     if len(df) < long_window + 5:
         html += f"""
         <div class="card">
           <h2>{ticker}</h2>
-          <p class="warn">⚠️ Histórico insuficiente para cálculo das médias</p>
+          <p class="warn">⚠️ Histórico insuficiente</p>
         </div>
         """
         continue
@@ -102,19 +101,19 @@ for _, row in portfolio.iterrows():
     # Médias móveis
     df['MM20'] = df['Close'].rolling(short_window).mean()
     df['MM50'] = df['Close'].rolling(long_window).mean()
-
-    # Remove linhas sem médias
     df = df.dropna()
 
-    # Verificação FINAL antes de acessar iloc[-2]
     if len(df) < 2:
-        html += f"""
-        <div class="card">
-          <h2>{ticker}</h2>
-          <p class="warn">⚠️ Dados insuficientes após cálculo das médias</p>
-        </div>
-        """
         continue
+
+    # ======================
+    # SINAIS
+    # ======================
+    df['sinal'] = (df['MM20'] > df['MM50']).astype(int)
+    df['ordem'] = df['sinal'].diff()
+
+    compras = df[df['ordem'] == 1]
+    vendas = df[df['ordem'] == -1]
 
     ontem = df.iloc[-2]
     hoje = df.iloc[-1]
@@ -130,12 +129,36 @@ for _, row in portfolio.iterrows():
         classe = "ok"
 
     # ======================
-    # PLOT
+    # PLOT COM MARCADORES
     # ======================
-    plt.figure(figsize=(10, 4))
-    plt.plot(df.index, df['Close'], label='Preço')
-    plt.plot(df.index, df['MM20'], label='MM20')
-    plt.plot(df.index, df['MM50'], label='MM50')
+    plt.figure(figsize=(11, 4.5))
+
+    plt.plot(df.index, df['Close'], label='Preço', linewidth=2)
+    plt.plot(df.index, df['MM20'], label='MM20', linestyle='--')
+    plt.plot(df.index, df['MM50'], label='MM50', linestyle='--')
+
+    # Marcadores de compra
+    if not compras.empty:
+        plt.scatter(
+            compras.index,
+            compras['Close'],
+            marker='^',
+            s=90,
+            label='Compra',
+            zorder=5
+        )
+
+    # Marcadores de venda
+    if not vendas.empty:
+        plt.scatter(
+            vendas.index,
+            vendas['Close'],
+            marker='v',
+            s=90,
+            label='Venda',
+            zorder=5
+        )
+
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
