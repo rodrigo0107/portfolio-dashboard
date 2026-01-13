@@ -53,6 +53,7 @@ h1 {{ text-align:center; }}
 .ok {{ color: #2e7d32; font-weight:bold; }}
 .buy {{ color: #1565c0; font-weight:bold; }}
 .sell {{ color: #c62828; font-weight:bold; }}
+.warn {{ color: #f57c00; font-weight:bold; }}
 img {{ max-width:100%; }}
 </style>
 </head>
@@ -69,21 +70,51 @@ for _, row in portfolio.iterrows():
 
     df = yf.download(
         ticker,
-        start="2020-01-01",
+        start="2010-01-01",
         auto_adjust=True,
         progress=False
     )
+
+    if df.empty:
+        html += f"""
+        <div class="card">
+          <h2>{ticker}</h2>
+          <p class="warn">❌ Dados não encontrados</p>
+        </div>
+        """
+        continue
 
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
 
     df = df[['Close']].dropna()
 
+    # Verificação mínima antes das médias
+    if len(df) < long_window + 5:
+        html += f"""
+        <div class="card">
+          <h2>{ticker}</h2>
+          <p class="warn">⚠️ Histórico insuficiente para cálculo das médias</p>
+        </div>
+        """
+        continue
+
+    # Médias móveis
     df['MM20'] = df['Close'].rolling(short_window).mean()
     df['MM50'] = df['Close'].rolling(long_window).mean()
 
-    df['sinal'] = (df['MM20'] > df['MM50']).astype(int)
-    df['ordem'] = df['sinal'].diff()
+    # Remove linhas sem médias
+    df = df.dropna()
+
+    # Verificação FINAL antes de acessar iloc[-2]
+    if len(df) < 2:
+        html += f"""
+        <div class="card">
+          <h2>{ticker}</h2>
+          <p class="warn">⚠️ Dados insuficientes após cálculo das médias</p>
+        </div>
+        """
+        continue
 
     ontem = df.iloc[-2]
     hoje = df.iloc[-1]
