@@ -1,0 +1,33 @@
+name: Atualizar Dashboard
+
+on:
+  schedule:
+    - cron: "30 7 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependências
+        run: |
+          pip install yfinance pandas matplotlib openpyxl
+
+      - name: Gerar dashboard
+        run: |
+          python gerar_dashboard.py
+
+      - name: Commit e publicar
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Atualização automática do dashboard" || echo "Sem mudanças"
+          git push
