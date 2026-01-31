@@ -7,82 +7,145 @@
 <style>
 body { font-family: Arial; background:#f4f6f8; }
 h1 { text-align:center; }
+h2 { text-align:center; }
 .card {
   background:white;
   padding:20px;
   margin:20px auto;
-  width:90%;
+  width:92%;
   border-radius:8px;
-  box-shadow:0 2px 5px rgba(0,0,0,.1);
+  box-shadow:0 2px 6px rgba(0,0,0,.12);
 }
-.ok { color: #2e7d32; font-weight:bold; }
-.buy { color: #1565c0; font-weight:bold; }
-.sell { color: #c62828; font-weight:bold; }
-.warn { color: #f57c00; font-weight:bold; }
+.buy { color: #1b5e20; font-weight:bold; }
+.sell { color: #b71c1c; font-weight:bold; }
+.ok { color: #333; }
+table { border-collapse:collapse; width:90%; margin:20px auto; }
+th, td { padding:8px; border:1px solid #ccc; text-align:center; }
+th { background:#e0e0e0; }
 img { max-width:100%; }
 </style>
 </head>
 <body>
 <h1>📊 Dashboard do Portfólio</h1>
-<p style="text-align:center;">Atualizado em: 2026-01-30</p>
+<h2>📌 Resumo Executivo</h2>
+<table>
+<tr>
+  <th>Ticker</th>
+  <th>Preço</th>
+  <th>Sinal</th>
+  <th>Tendência</th>
+</tr>
+
+    <tr>
+      <td>BIAU39.SA</td>
+      <td>120.22</td>
+      <td class="ok">⚪ NENHUMA AÇÃO</td>
+      <td>Alta</td>
+    </tr>
+    
+    <tr>
+      <td>GOGL34.SA</td>
+      <td>148.1</td>
+      <td class="ok">⚪ NENHUMA AÇÃO</td>
+      <td>Alta</td>
+    </tr>
+    
+    <tr>
+      <td>M2ST34.SA</td>
+      <td>11.2</td>
+      <td class="ok">⚪ NENHUMA AÇÃO</td>
+      <td>Baixa</td>
+    </tr>
+    
+    <tr>
+      <td>MSFT34.SA</td>
+      <td>94.48</td>
+      <td class="ok">⚪ NENHUMA AÇÃO</td>
+      <td>Baixa</td>
+    </tr>
+    
+    <tr>
+      <td>NVDC34.SA</td>
+      <td>20.99</td>
+      <td class="ok">⚪ NENHUMA AÇÃO</td>
+      <td>Alta</td>
+    </tr>
+    
+    <tr>
+      <td>P2LT34.SA</td>
+      <td>256.52</td>
+      <td class="ok">⚪ NENHUMA AÇÃO</td>
+      <td>Baixa</td>
+    </tr>
+    
+    <tr>
+      <td>TSLA34.SA</td>
+      <td>71.09</td>
+      <td class="ok">⚪ NENHUMA AÇÃO</td>
+      <td>Baixa</td>
+    </tr>
+    
+    <tr>
+      <td>MUTC34.SA</td>
+      <td>366.0</td>
+      <td class="ok">⚪ NENHUMA AÇÃO</td>
+      <td>Alta</td>
+    </tr>
+    </table>
+<p style="text-align:center;">Atualizado em: 2026-01-31</p>
 
     <div class="card">
       <h2>BIAU39.SA</h2>
-      <p>Preço atual: <strong>132.94</strong></p>
+      <p>Preço atual: <strong>120.22</strong></p>
       <p class="ok">Sinal: ⚪ NENHUMA AÇÃO</p>
       <img src="plots/BIAU39.SA.png">
     </div>
     
-        <div class="card">
-          <h2>BSLV39.SA</h2>
-          <p class="warn">⚠️ Histórico insuficiente</p>
-        </div>
-        
     <div class="card">
       <h2>GOGL34.SA</h2>
-      <p>Preço atual: <strong>143.56</strong></p>
+      <p>Preço atual: <strong>148.10</strong></p>
       <p class="ok">Sinal: ⚪ NENHUMA AÇÃO</p>
       <img src="plots/GOGL34.SA.png">
     </div>
     
     <div class="card">
       <h2>M2ST34.SA</h2>
-      <p>Preço atual: <strong>10.61</strong></p>
+      <p>Preço atual: <strong>11.20</strong></p>
       <p class="ok">Sinal: ⚪ NENHUMA AÇÃO</p>
       <img src="plots/M2ST34.SA.png">
     </div>
     
     <div class="card">
       <h2>MSFT34.SA</h2>
-      <p>Preço atual: <strong>93.29</strong></p>
+      <p>Preço atual: <strong>94.48</strong></p>
       <p class="ok">Sinal: ⚪ NENHUMA AÇÃO</p>
       <img src="plots/MSFT34.SA.png">
     </div>
     
     <div class="card">
       <h2>NVDC34.SA</h2>
-      <p>Preço atual: <strong>20.84</strong></p>
+      <p>Preço atual: <strong>20.99</strong></p>
       <p class="ok">Sinal: ⚪ NENHUMA AÇÃO</p>
       <img src="plots/NVDC34.SA.png">
     </div>
     
     <div class="card">
       <h2>P2LT34.SA</h2>
-      <p>Preço atual: <strong>262.86</strong></p>
+      <p>Preço atual: <strong>256.52</strong></p>
       <p class="ok">Sinal: ⚪ NENHUMA AÇÃO</p>
       <img src="plots/P2LT34.SA.png">
     </div>
     
     <div class="card">
       <h2>TSLA34.SA</h2>
-      <p>Preço atual: <strong>67.49</strong></p>
+      <p>Preço atual: <strong>71.09</strong></p>
       <p class="ok">Sinal: ⚪ NENHUMA AÇÃO</p>
       <img src="plots/TSLA34.SA.png">
     </div>
     
     <div class="card">
       <h2>MUTC34.SA</h2>
-      <p>Preço atual: <strong>384.00</strong></p>
+      <p>Preço atual: <strong>366.00</strong></p>
       <p class="ok">Sinal: ⚪ NENHUMA AÇÃO</p>
       <img src="plots/MUTC34.SA.png">
     </div>
