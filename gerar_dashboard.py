@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use("Agg")  # backend estável (Windows + GitHub)
+matplotlib.use("Agg")
 
 import yfinance as yf
 import pandas as pd
@@ -19,8 +19,6 @@ arquivo_dashboard = "index.html"
 os.makedirs(pasta_plots, exist_ok=True)
 
 # ==================================================
-# FUNÇÃO AUXILIAR
-# ==================================================
 def normalizar_ticker(ticker):
     ticker = str(ticker).strip().upper()
     if not ticker.endswith(".SA"):
@@ -28,18 +26,11 @@ def normalizar_ticker(ticker):
     return ticker
 
 # ==================================================
-# LEITURA DO PORTFÓLIO
-# ==================================================
 portfolio = pd.read_excel(arquivo_portfolio)
 portfolio["ticker"] = portfolio["ticker"].apply(normalizar_ticker)
 
-# ==================================================
-# RESUMO EXECUTIVO
-# ==================================================
 resumo = []
 
-# ==================================================
-# INÍCIO HTML
 # ==================================================
 html = f"""
 <!DOCTYPE html>
@@ -74,8 +65,6 @@ img {{ max-width:100%; }}
 """
 
 # ==================================================
-# PROCESSA ATIVOS
-# ==================================================
 for _, row in portfolio.iterrows():
     ticker = row["ticker"]
 
@@ -97,7 +86,6 @@ for _, row in portfolio.iterrows():
     if len(df) < long_window + 10:
         continue
 
-    # Médias móveis
     df["MM20"] = df["Close"].rolling(short_window).mean()
     df["MM50"] = df["Close"].rolling(long_window).mean()
     df.dropna(inplace=True)
@@ -105,9 +93,9 @@ for _, row in portfolio.iterrows():
     if len(df) < 2:
         continue
 
-    # ======================
-    # DETECÇÃO DE CRUZAMENTOS (HISTÓRICO)
-    # ======================
+    # ==================================================
+    # MARCADORES VISUAIS (HISTÓRICO)
+    # ==================================================
     buy_x, buy_y = [], []
     sell_x, sell_y = [], []
 
@@ -120,9 +108,9 @@ for _, row in portfolio.iterrows():
             sell_x.append(df.index[i])
             sell_y.append(df["Close"].iloc[i])
 
-    # ======================
-    # SINAL ATUAL
-    # ======================
+    # ==================================================
+    # SINAL ATUAL (RESUMO EXECUTIVO)
+    # ==================================================
     ontem = df.iloc[-2]
     hoje = df.iloc[-1]
 
@@ -136,9 +124,6 @@ for _, row in portfolio.iterrows():
         status = "⚪ NENHUMA AÇÃO"
         classe = "ok"
 
-    # ======================
-    # ADICIONA AO RESUMO
-    # ======================
     resumo.append({
         "ticker": ticker,
         "preco": round(hoje["Close"], 2),
@@ -147,9 +132,9 @@ for _, row in portfolio.iterrows():
         "tendencia": "Alta" if hoje["MM20"] > hoje["MM50"] else "Baixa"
     })
 
-    # ======================
-    # PLOT COM MARCADORES
-    # ======================
+    # ==================================================
+    # PLOT (COM MARCADORES)
+    # ==================================================
     plt.figure(figsize=(12, 5))
     plt.plot(df.index, df["Close"], label="Preço", linewidth=2)
     plt.plot(df.index, df["MM20"], label="MM20", linestyle="--")
@@ -166,9 +151,6 @@ for _, row in portfolio.iterrows():
     plt.savefig(os.path.join(pasta_plots, nome_plot), dpi=160)
     plt.close()
 
-    # ======================
-    # HTML DO ATIVO
-    # ======================
     html += f"""
     <div class="card">
       <h2>{ticker}</h2>
@@ -179,7 +161,7 @@ for _, row in portfolio.iterrows():
     """
 
 # ==================================================
-# RESUMO EXECUTIVO (TOPO)
+# RESUMO EXECUTIVO (INALTERADO)
 # ==================================================
 ordem_status = {"🔴 VENDA": 0, "🟢 COMPRA": 1, "⚪ NENHUMA AÇÃO": 2}
 resumo.sort(key=lambda x: ordem_status.get(x["status"], 99))
@@ -208,10 +190,6 @@ for r in resumo:
 tabela_resumo += "</table>"
 
 html = html.replace("</h1>", "</h1>" + tabela_resumo)
-
-# ==================================================
-# FINAL HTML
-# ==================================================
 html += "</body></html>"
 
 with open(arquivo_dashboard, "w", encoding="utf-8") as f:
