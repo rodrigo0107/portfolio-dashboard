@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use("Agg")  # backend headless (obrigatório para Windows/GitHub)
+matplotlib.use("Agg")  # backend estável (Windows + GitHub)
 
 import yfinance as yf
 import pandas as pd
@@ -19,7 +19,7 @@ arquivo_dashboard = "index.html"
 os.makedirs(pasta_plots, exist_ok=True)
 
 # ==================================================
-# FUNÇÕES AUXILIARES
+# FUNÇÃO AUXILIAR
 # ==================================================
 def normalizar_ticker(ticker):
     ticker = str(ticker).strip().upper()
@@ -31,15 +31,15 @@ def normalizar_ticker(ticker):
 # LEITURA DO PORTFÓLIO
 # ==================================================
 portfolio = pd.read_excel(arquivo_portfolio)
-portfolio['ticker'] = portfolio['ticker'].apply(normalizar_ticker)
+portfolio["ticker"] = portfolio["ticker"].apply(normalizar_ticker)
 
 # ==================================================
-# LISTA PARA RESUMO EXECUTIVO
+# RESUMO EXECUTIVO
 # ==================================================
 resumo = []
 
 # ==================================================
-# INÍCIO DO HTML
+# INÍCIO HTML
 # ==================================================
 html = f"""
 <!DOCTYPE html>
@@ -59,9 +59,9 @@ h2 {{ text-align:center; }}
   border-radius:8px;
   box-shadow:0 2px 6px rgba(0,0,0,.12);
 }}
-.buy {{ color: #1b5e20; font-weight:bold; }}
-.sell {{ color: #b71c1c; font-weight:bold; }}
-.ok {{ color: #333; }}
+.buy {{ color:#1b5e20; font-weight:bold; }}
+.sell {{ color:#b71c1c; font-weight:bold; }}
+.ok {{ color:#333; }}
 table {{ border-collapse:collapse; width:90%; margin:20px auto; }}
 th, td {{ padding:8px; border:1px solid #ccc; text-align:center; }}
 th {{ background:#e0e0e0; }}
@@ -74,10 +74,10 @@ img {{ max-width:100%; }}
 """
 
 # ==================================================
-# PROCESSA CADA ATIVO
+# PROCESSA ATIVOS
 # ==================================================
 for _, row in portfolio.iterrows():
-    ticker = row['ticker']
+    ticker = row["ticker"]
 
     df = yf.download(
         ticker,
@@ -92,29 +92,44 @@ for _, row in portfolio.iterrows():
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
 
-    df = df[['Close']].dropna()
+    df = df[["Close"]].dropna()
 
     if len(df) < long_window + 10:
         continue
 
     # Médias móveis
-    df['MM20'] = df['Close'].rolling(short_window).mean()
-    df['MM50'] = df['Close'].rolling(long_window).mean()
+    df["MM20"] = df["Close"].rolling(short_window).mean()
+    df["MM50"] = df["Close"].rolling(long_window).mean()
     df.dropna(inplace=True)
 
     if len(df) < 2:
         continue
 
-    ontem = df.iloc[-2]
-    hoje = df.iloc[-1]
+    # ======================
+    # DETECÇÃO DE CRUZAMENTOS (HISTÓRICO)
+    # ======================
+    buy_x, buy_y = [], []
+    sell_x, sell_y = [], []
+
+    for i in range(1, len(df)):
+        if df["MM20"].iloc[i-1] <= df["MM50"].iloc[i-1] and df["MM20"].iloc[i] > df["MM50"].iloc[i]:
+            buy_x.append(df.index[i])
+            buy_y.append(df["Close"].iloc[i])
+
+        if df["MM20"].iloc[i-1] >= df["MM50"].iloc[i-1] and df["MM20"].iloc[i] < df["MM50"].iloc[i]:
+            sell_x.append(df.index[i])
+            sell_y.append(df["Close"].iloc[i])
 
     # ======================
     # SINAL ATUAL
     # ======================
-    if ontem['MM20'] <= ontem['MM50'] and hoje['MM20'] > hoje['MM50']:
+    ontem = df.iloc[-2]
+    hoje = df.iloc[-1]
+
+    if ontem["MM20"] <= ontem["MM50"] and hoje["MM20"] > hoje["MM50"]:
         status = "🟢 COMPRA"
         classe = "buy"
-    elif ontem['MM20'] >= ontem['MM50'] and hoje['MM20'] < hoje['MM50']:
+    elif ontem["MM20"] >= ontem["MM50"] and hoje["MM20"] < hoje["MM50"]:
         status = "🔴 VENDA"
         classe = "sell"
     else:
@@ -126,19 +141,22 @@ for _, row in portfolio.iterrows():
     # ======================
     resumo.append({
         "ticker": ticker,
-        "preco": round(hoje['Close'], 2),
+        "preco": round(hoje["Close"], 2),
         "status": status,
         "classe": classe,
-        "tendencia": "Alta" if hoje['MM20'] > hoje['MM50'] else "Baixa"
+        "tendencia": "Alta" if hoje["MM20"] > hoje["MM50"] else "Baixa"
     })
 
     # ======================
-    # PLOT DO ATIVO
+    # PLOT COM MARCADORES
     # ======================
     plt.figure(figsize=(12, 5))
-    plt.plot(df.index, df['Close'], label='Preço', linewidth=2)
-    plt.plot(df.index, df['MM20'], label='MM20', linestyle='--')
-    plt.plot(df.index, df['MM50'], label='MM50', linestyle='--')
+    plt.plot(df.index, df["Close"], label="Preço", linewidth=2)
+    plt.plot(df.index, df["MM20"], label="MM20", linestyle="--")
+    plt.plot(df.index, df["MM50"], label="MM50", linestyle="--")
+
+    plt.scatter(buy_x, buy_y, marker="^", color="green", s=120, label="Compra", zorder=5)
+    plt.scatter(sell_x, sell_y, marker="v", color="red", s=120, label="Venda", zorder=5)
 
     plt.legend()
     plt.grid(True, alpha=0.3)
@@ -161,7 +179,7 @@ for _, row in portfolio.iterrows():
     """
 
 # ==================================================
-# RESUMO EXECUTIVO (INSERIDO NO TOPO)
+# RESUMO EXECUTIVO (TOPO)
 # ==================================================
 ordem_status = {"🔴 VENDA": 0, "🟢 COMPRA": 1, "⚪ NENHUMA AÇÃO": 2}
 resumo.sort(key=lambda x: ordem_status.get(x["status"], 99))
@@ -189,11 +207,10 @@ for r in resumo:
 
 tabela_resumo += "</table>"
 
-# insere o resumo logo após o título principal
 html = html.replace("</h1>", "</h1>" + tabela_resumo)
 
 # ==================================================
-# FINAL DO HTML
+# FINAL HTML
 # ==================================================
 html += "</body></html>"
 
