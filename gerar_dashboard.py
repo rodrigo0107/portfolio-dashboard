@@ -94,22 +94,33 @@ for _, row in portfolio.iterrows():
         continue
 
     # ==================================================
-    # MARCADORES VISUAIS (HISTÓRICO)
+    # DETECÇÃO HISTÓRICA DE CRUZAMENTOS
     # ==================================================
     buy_x, buy_y = [], []
     sell_x, sell_y = [], []
+    eventos = []
 
     for i in range(1, len(df)):
         if df["MM20"].iloc[i-1] <= df["MM50"].iloc[i-1] and df["MM20"].iloc[i] > df["MM50"].iloc[i]:
             buy_x.append(df.index[i])
             buy_y.append(df["Close"].iloc[i])
+            eventos.append(("COMPRA", df.index[i]))
 
         if df["MM20"].iloc[i-1] >= df["MM50"].iloc[i-1] and df["MM20"].iloc[i] < df["MM50"].iloc[i]:
             sell_x.append(df.index[i])
             sell_y.append(df["Close"].iloc[i])
+            eventos.append(("VENDA", df.index[i]))
 
     # ==================================================
-    # SINAL ATUAL (RESUMO EXECUTIVO)
+    # ÚLTIMO ALERTA HISTÓRICO
+    # ==================================================
+    if len(eventos) > 0:
+        ultimo_alerta = eventos[-1][0]
+    else:
+        ultimo_alerta = "Nenhum"
+
+    # ==================================================
+    # SINAL ATUAL
     # ==================================================
     ontem = df.iloc[-2]
     hoje = df.iloc[-1]
@@ -129,11 +140,12 @@ for _, row in portfolio.iterrows():
         "preco": round(hoje["Close"], 2),
         "status": status,
         "classe": classe,
-        "tendencia": "Alta" if hoje["MM20"] > hoje["MM50"] else "Baixa"
+        "tendencia": "Alta" if hoje["MM20"] > hoje["MM50"] else "Baixa",
+        "ultimo_alerta": ultimo_alerta
     })
 
     # ==================================================
-    # PLOT (COM MARCADORES)
+    # PLOT
     # ==================================================
     plt.figure(figsize=(12, 5))
     plt.plot(df.index, df["Close"], label="Preço", linewidth=2)
@@ -155,13 +167,13 @@ for _, row in portfolio.iterrows():
     <div class="card">
       <h2>{ticker}</h2>
       <p>Preço atual: <strong>{hoje['Close']:.2f}</strong></p>
-      <p class="{classe}">Sinal: {status}</p>
+      <p class="{classe}">Sinal Atual: {status}</p>
       <img src="{pasta_plots}/{nome_plot}">
     </div>
     """
 
 # ==================================================
-# RESUMO EXECUTIVO (INALTERADO)
+# RESUMO EXECUTIVO
 # ==================================================
 ordem_status = {"🔴 VENDA": 0, "🟢 COMPRA": 1, "⚪ NENHUMA AÇÃO": 2}
 resumo.sort(key=lambda x: ordem_status.get(x["status"], 99))
@@ -172,8 +184,9 @@ tabela_resumo = """
 <tr>
   <th>Ticker</th>
   <th>Preço</th>
-  <th>Sinal</th>
+  <th>Sinal Atual</th>
   <th>Tendência</th>
+  <th>Último Alerta</th>
 </tr>
 """
 
@@ -184,6 +197,7 @@ for r in resumo:
       <td>{r['preco']}</td>
       <td class="{r['classe']}">{r['status']}</td>
       <td>{r['tendencia']}</td>
+      <td>{r['ultimo_alerta']}</td>
     </tr>
     """
 
